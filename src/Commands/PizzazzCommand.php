@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace EgamiPeaks\Pizzazz\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class PizzazzCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'pizzazz';
 
     public $description = 'My command';
 
