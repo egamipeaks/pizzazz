@@ -3,19 +3,10 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/egamipeaks/pizzazz.svg?style=flat-square)](https://packagist.org/packages/egamipeaks/pizzazz)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/egamipeaks/pizzazz/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/egamipeaks/pizzazz/actions?query=workflow%3Arun-tests+branch%3Amain)
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/egamipeaks/pizzazz/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/egamipeaks/pizzazz/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/egamipeaks/pizzazz.svg?style=flat-square)](https://packagist.org/packages/egamipeaks/pizzazz)
 
 Pizzazz is a Laravel page caching package that provides intelligent, full-page HTTP caching for your Laravel applications. It automatically caches GET requests and serves cached responses with configurable cache invalidation, query parameter filtering, and authentication-aware caching.
 
 The package includes middleware for automatic caching, cache flushing utilities, and comprehensive logging to help you optimize your application's performance.
-
-## Support us
-
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/pizzazz.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/pizzazz)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
 
 ## Installation
 
@@ -23,13 +14,6 @@ You can install the package via composer:
 
 ```bash
 composer require egamipeaks/pizzazz
-```
-
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="pizzazz-migrations"
-php artisan migrate
 ```
 
 You can publish the config file with:
@@ -63,12 +47,6 @@ return [
     // Query arguments to include when caching
     'required_query_args' => [],
 ];
-```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="pizzazz-views"
 ```
 
 ## Usage
@@ -163,25 +141,16 @@ Or specify required query parameters to include in cache keys:
 ## Testing
 
 ```bash
-composer test
+./vendor/bin/pest
 ```
 
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
-## Contributing
-
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
 ## Credits
 
 - [Andrew Krzynowek](https://github.com/egamipeaks)
-- [All Contributors](../../contributors)
 
 ## License
 
