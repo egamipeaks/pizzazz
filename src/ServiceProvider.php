@@ -29,4 +29,10 @@ class ServiceProvider extends PackageServiceProvider
         $this->app->singleton(Services\PageCacheFlusher::class);
         $this->app->singleton(Pizzazz::class);
     }
+
+    public function packageBooted()
+    {
+        $router = $this->app['router'];
+        $router->aliasMiddleware('page-cache', Middleware\PageCacheMiddleware::class);
+    }
 }
