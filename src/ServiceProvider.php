@@ -18,7 +18,6 @@ class ServiceProvider extends PackageServiceProvider
         $package
             ->name('pizzazz')
             ->hasConfigFile()
-            ->hasViews()
             ->hasCommand(PizzazzCommand::class);
     }
 
