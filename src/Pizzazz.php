@@ -5,6 +5,7 @@ namespace EgamiPeaks\Pizzazz;
 use EgamiPeaks\Pizzazz\Exceptions\PageCacheException;
 use EgamiPeaks\Pizzazz\Services\PageCacheKeyService;
 use EgamiPeaks\Pizzazz\Services\PageCacheLogger;
+use EgamiPeaks\Pizzazz\Services\PageCacheRegistry;
 use Illuminate\Http\Request;
 
 class Pizzazz
@@ -13,7 +14,8 @@ class Pizzazz
 
     public function __construct(
         protected PageCacheKeyService $keyService,
-        protected PageCacheLogger $logger
+        protected PageCacheLogger $logger,
+        protected PageCacheRegistry $registry
     ) {
         $this->disallowedQueryVars = config('pizzazz.disallowed_query_vars', []);
     }
@@ -23,14 +25,6 @@ class Pizzazz
         try {
             if (! config('pizzazz.enabled')) {
                 throw new PageCacheException('Page cache is disabled');
-            }
-
-            if ($request->server('SCRIPT_NAME') !== '/index.php') {
-                throw new PageCacheException('Not index.php');
-            }
-
-            if (empty($request->getHost())) {
-                throw new PageCacheException('No host');
             }
 
             if ($request->method() !== 'GET') {
@@ -63,12 +57,10 @@ class Pizzazz
         $url = $request->fullUrl();
 
         try {
-            $tags = $this->keyService->getTags($request);
             $key = $this->keyService->getKey($request);
 
-            if ($cacheValue = cache()->tags($tags)->get($key)) {
+            if ($cacheValue = cache()->get($key)) {
                 $this->logger->log(sprintf('Serving cache: %s', $url), [
-                    'tags' => $tags,
                     'key' => $key,
                 ]);
 

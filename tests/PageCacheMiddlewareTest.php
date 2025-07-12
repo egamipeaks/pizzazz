@@ -4,16 +4,18 @@ use EgamiPeaks\Pizzazz\Middleware\PageCacheMiddleware;
 use EgamiPeaks\Pizzazz\Pizzazz;
 use EgamiPeaks\Pizzazz\Services\PageCacheKeyService;
 use EgamiPeaks\Pizzazz\Services\PageCacheLogger;
+use EgamiPeaks\Pizzazz\Services\PageCacheRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 
 beforeEach(function () {
-    $this->keyService = new PageCacheKeyService;
+    $this->registry = new PageCacheRegistry;
+    $this->keyService = new PageCacheKeyService($this->registry);
     $this->logger = new PageCacheLogger;
-    $this->pizzazz = new Pizzazz($this->keyService, $this->logger);
-    $this->middleware = new PageCacheMiddleware($this->pizzazz, $this->logger, $this->keyService);
+    $this->pizzazz = new Pizzazz($this->keyService, $this->logger, $this->registry);
+    $this->middleware = new PageCacheMiddleware($this->pizzazz, $this->logger, $this->keyService, $this->registry);
 });
 
 describe('middleware cache hit', function () {
@@ -26,8 +28,7 @@ describe('middleware cache hit', function () {
         $cachedContent = '<html><body>Cached content</body></html>';
 
         $this->mock('cache', function ($mock) use ($cachedContent) {
-            $mock->shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-            $mock->shouldReceive('get')->with('path=test:query=0')->andReturn($cachedContent);
+            $mock->shouldReceive('get')->with('pizzazz:page:path=test:query=0')->andReturn($cachedContent);
         });
 
         $response = $this->middleware->handle($request, function () use ($cachedContent) {
@@ -44,13 +45,13 @@ describe('middleware cache hit', function () {
         $request = Request::create('/test');
         $request->server->set('SCRIPT_NAME', '/index.php');
 
-        Cache::shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-        Cache::shouldReceive('get')->with('path=test:query=0')->andReturn(null);
+        Cache::shouldReceive('get')->with('pizzazz:page:path=test:query=0')->andReturn(null);
 
         $freshContent = '<html><body>Fresh content</body></html>';
 
-        Cache::shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-        Cache::shouldReceive('put')->with('path=test:query=0', $freshContent, \Mockery::any());
+        Cache::shouldReceive('put')->with('pizzazz:page:path=test:query=0', $freshContent, \Mockery::any());
+        Cache::shouldReceive('get')->with('pizzazz:cache_registry', [])->andReturn([]);
+        Cache::shouldReceive('forever')->with('pizzazz:cache_registry', \Mockery::type('array'));
 
         $response = $this->middleware->handle($request, function () use ($freshContent) {
             return new Response($freshContent);
@@ -72,12 +73,12 @@ describe('middleware cache storage', function () {
         $content = '<html><body>Content to cache</body></html>';
 
         // Mock cache miss
-        Cache::shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-        Cache::shouldReceive('get')->with('path=test:query=0')->andReturn(null);
+        Cache::shouldReceive('get')->with('pizzazz:page:path=test:query=0')->andReturn(null);
 
         // Mock cache storage
-        Cache::shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-        Cache::shouldReceive('put')->with('path=test:query=0', $content, \Mockery::any());
+        Cache::shouldReceive('put')->with('pizzazz:page:path=test:query=0', $content, \Mockery::any());
+        Cache::shouldReceive('get')->with('pizzazz:cache_registry', [])->andReturn([]);
+        Cache::shouldReceive('forever')->with('pizzazz:cache_registry', \Mockery::type('array'));
 
         $response = $this->middleware->handle($request, function () use ($content) {
             return new Response($content, 200);
@@ -93,8 +94,7 @@ describe('middleware cache storage', function () {
         $request = Request::create('/test');
         $request->server->set('SCRIPT_NAME', '/index.php');
 
-        Cache::shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-        Cache::shouldReceive('get')->with('path=test:query=0')->andReturn(null);
+        Cache::shouldReceive('get')->with('pizzazz:page:path=test:query=0')->andReturn(null);
 
         // Should not attempt to cache
         Cache::shouldNotReceive('put');
@@ -115,8 +115,7 @@ describe('middleware cache storage', function () {
 
         $shortContent = 'Short';
 
-        Cache::shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-        Cache::shouldReceive('get')->with('path=test:query=0')->andReturn(null);
+        Cache::shouldReceive('get')->with('pizzazz:page:path=test:query=0')->andReturn(null);
 
         // Should not attempt to cache
         Cache::shouldNotReceive('put');
@@ -137,11 +136,11 @@ describe('middleware cache storage', function () {
 
         $longContent = 'This is a long enough content to be cached';
 
-        Cache::shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-        Cache::shouldReceive('get')->with('path=test:query=0')->andReturn(null);
+        Cache::shouldReceive('get')->with('pizzazz:page:path=test:query=0')->andReturn(null);
 
-        Cache::shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-        Cache::shouldReceive('put')->with('path=test:query=0', $longContent, \Mockery::any());
+        Cache::shouldReceive('put')->with('pizzazz:page:path=test:query=0', $longContent, \Mockery::any());
+        Cache::shouldReceive('get')->with('pizzazz:cache_registry', [])->andReturn([]);
+        Cache::shouldReceive('forever')->with('pizzazz:cache_registry', \Mockery::type('array'));
 
         $response = $this->middleware->handle($request, function () use ($longContent) {
             return new Response($longContent, 200);

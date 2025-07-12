@@ -3,12 +3,13 @@
 use EgamiPeaks\Pizzazz\Pizzazz;
 use EgamiPeaks\Pizzazz\Services\PageCacheKeyService;
 use EgamiPeaks\Pizzazz\Services\PageCacheLogger;
+use EgamiPeaks\Pizzazz\Services\PageCacheRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 
 function createPizzazzInstance()
 {
-    return new Pizzazz(new PageCacheKeyService, new PageCacheLogger);
+    return new Pizzazz(new PageCacheKeyService(new PageCacheRegistry), new PageCacheLogger, new PageCacheRegistry);
 }
 
 describe('canCache validation', function () {
@@ -18,28 +19,6 @@ describe('canCache validation', function () {
         $pizzazz = createPizzazzInstance();
 
         $request = Request::create('/test');
-
-        expect($pizzazz->canCache($request))->toBeFalse();
-    });
-
-    it('returns false when not index.php', function () {
-        Config::set('pizzazz.enabled', true);
-
-        $pizzazz = createPizzazzInstance();
-
-        $request = Request::create('/test');
-        $request->server->set('SCRIPT_NAME', '/other.php');
-
-        expect($pizzazz->canCache($request))->toBeFalse();
-    });
-
-    it('returns false when no host', function () {
-        Config::set('pizzazz.enabled', true);
-
-        $pizzazz = createPizzazzInstance();
-
-        $request = Request::create('/test');
-        $request->headers->remove('host');
 
         expect($pizzazz->canCache($request))->toBeFalse();
     });
@@ -139,8 +118,7 @@ describe('cache retrieval', function () {
         $request = Request::create('/test');
 
         $this->mock('cache', function ($mock) {
-            $mock->shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-            $mock->shouldReceive('get')->with('path=test:query=0')->andReturn(null);
+            $mock->shouldReceive('get')->with('pizzazz:page:path=test:query=0')->andReturn(null);
         });
 
         expect($pizzazz->getCache($request))->toBeNull();
@@ -153,8 +131,7 @@ describe('cache retrieval', function () {
         $cachedContent = '<html><body>Cached content</body></html>';
 
         $this->mock('cache', function ($mock) use ($cachedContent) {
-            $mock->shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-            $mock->shouldReceive('get')->with('path=test:query=0')->andReturn($cachedContent);
+            $mock->shouldReceive('get')->with('pizzazz:page:path=test:query=0')->andReturn($cachedContent);
         });
 
         expect($pizzazz->getCache($request))->toBe($cachedContent);
@@ -171,8 +148,7 @@ describe('cache retrieval', function () {
         $expectedQueryKey = md5('page=2');
 
         $this->mock('cache', function ($mock) use ($cachedContent, $expectedQueryKey) {
-            $mock->shouldReceive('tags')->with(['page', 'page:'.md5('/test')])->andReturnSelf();
-            $mock->shouldReceive('get')->with("path=test:query=$expectedQueryKey")->andReturn($cachedContent);
+            $mock->shouldReceive('get')->with("pizzazz:page:path=test:query=$expectedQueryKey")->andReturn($cachedContent);
         });
 
         expect($pizzazz->getCache($request))->toBe($cachedContent);
@@ -185,8 +161,7 @@ describe('cache retrieval', function () {
         $cachedContent = '<html><body>Home page</body></html>';
 
         $this->mock('cache', function ($mock) use ($cachedContent) {
-            $mock->shouldReceive('tags')->with(['page', 'page:'.md5('/')])->andReturnSelf();
-            $mock->shouldReceive('get')->with('path=home:query=0')->andReturn($cachedContent);
+            $mock->shouldReceive('get')->with('pizzazz:page:path=home:query=0')->andReturn($cachedContent);
         });
 
         expect($pizzazz->getCache($request))->toBe($cachedContent);

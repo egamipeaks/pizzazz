@@ -6,6 +6,7 @@ use Closure;
 use EgamiPeaks\Pizzazz\Pizzazz;
 use EgamiPeaks\Pizzazz\Services\PageCacheKeyService;
 use EgamiPeaks\Pizzazz\Services\PageCacheLogger;
+use EgamiPeaks\Pizzazz\Services\PageCacheRegistry;
 use Illuminate\Http\Request;
 
 class PageCacheMiddleware
@@ -14,6 +15,7 @@ class PageCacheMiddleware
         protected Pizzazz $pizzazz,
         protected PageCacheLogger $logger,
         protected PageCacheKeyService $keyService,
+        protected PageCacheRegistry $registry
     ) {
         //
     }
@@ -44,16 +46,19 @@ class PageCacheMiddleware
             return $response;
         }
 
-        $tags = $this->keyService->getTags($request);
         $key = $this->keyService->getKey($request);
+        $pageIdentifier = $this->keyService->getPageIdentifier($request);
 
         $this->logger->log(sprintf('Caching page: %s', $url), [
-            'tags' => $tags,
             'key' => $key,
+            'page_identifier' => $pageIdentifier,
         ]);
 
         $cacheLengthInSeconds = config('pizzazz.cache_length_in_seconds', 86400);
-        cache()->tags($tags)->put($key, $response->getContent(), now()->addSeconds($cacheLengthInSeconds));
+        cache()->put($key, $response->getContent(), now()->addSeconds($cacheLengthInSeconds));
+
+        // Register the cache key for tracking
+        $this->registry->register($key, $pageIdentifier);
 
         return $response;
     }

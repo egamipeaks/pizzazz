@@ -102,6 +102,16 @@ $cachedContent = $pizzazz->getCache($request);
 
 #### Cache Flushing
 
+**Using Artisan Command**
+
+Clear all page cache using the built-in artisan command:
+
+```bash
+php artisan pizzazz:flush
+```
+
+**Programmatically**
+
 ```php
 use EgamiPeaks\Pizzazz\Services\PageCacheFlusher;
 
