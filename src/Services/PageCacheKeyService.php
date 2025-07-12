@@ -8,8 +8,9 @@ class PageCacheKeyService
 {
     private array $requiredQueryArgs;
 
-    public function __construct()
-    {
+    public function __construct(
+        protected PageCacheRegistry $registry
+    ) {
         $this->requiredQueryArgs = config('pizzazz.required_query_args', []);
     }
 
@@ -27,21 +28,18 @@ class PageCacheKeyService
         $query = $this->getCleanedQueryString($request);
         $queryKey = $query ? md5($query) : '0';
 
-        return sprintf(
+        $key = sprintf(
             '%s:query=%s',
             $urlKey,
             $queryKey,
         );
+
+        return $this->registry->getFullCacheKey($key);
     }
 
-    public function getTags(Request $request): array
+    public function getPageIdentifier(Request $request): string
     {
-        return ['page', $this->getPageTag($request)];
-    }
-
-    public function getPageTag(Request $request): string
-    {
-        return 'page:'.md5($request->getPathInfo());
+        return $this->registry->getPageIdentifier($request->getPathInfo());
     }
 
     private function getCleanedQueryString(Request $request): string
