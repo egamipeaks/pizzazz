@@ -2,6 +2,10 @@
 
 All notable changes to `pizzazz` will be documented in this file.
 
+## 0.0.4 - 2025-07-12
+
+**Full Changelog**: https://github.com/egamipeaks/pizzazz/compare/0.0.3...0.0.4
+
 ## 0.0.3 - 2025-07-12
 
 ### What's Changed
